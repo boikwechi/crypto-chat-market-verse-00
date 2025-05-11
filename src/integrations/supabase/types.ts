@@ -9,6 +9,250 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          joined_at: string
+          last_read: string
+          profile_id: string
+        }
+        Insert: {
+          conversation_id: string
+          joined_at?: string
+          last_read?: string
+          profile_id: string
+        }
+        Update: {
+          conversation_id?: string
+          joined_at?: string
+          last_read?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_participants_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          is_group: boolean
+          name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_group?: boolean
+          name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_group?: boolean
+          name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      crypto_holdings: {
+        Row: {
+          amount: number
+          crypto_symbol: string
+          id: string
+          last_updated: string
+          profile_id: string
+        }
+        Insert: {
+          amount?: number
+          crypto_symbol: string
+          id?: string
+          last_updated?: string
+          profile_id: string
+        }
+        Update: {
+          amount?: number
+          crypto_symbol?: string
+          id?: string
+          last_updated?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crypto_holdings_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_data: {
+        Row: {
+          current_price: number
+          id: string
+          last_updated: string
+          market_cap: number
+          name: string
+          price_change_percentage_24h: number | null
+          symbol: string
+          volume_24h: number
+        }
+        Insert: {
+          current_price: number
+          id?: string
+          last_updated?: string
+          market_cap: number
+          name: string
+          price_change_percentage_24h?: number | null
+          symbol: string
+          volume_24h: number
+        }
+        Update: {
+          current_price?: number
+          id?: string
+          last_updated?: string
+          market_cap?: number
+          name?: string
+          price_change_percentage_24h?: number | null
+          symbol?: string
+          volume_24h?: number
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          sender_id: string
+          status: Database["public"]["Enums"]["message_status"]
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          sender_id: string
+          status?: Database["public"]["Enums"]["message_status"]
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          status?: Database["public"]["Enums"]["message_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          credits: number
+          display_name: string | null
+          id: string
+          last_seen: string | null
+          updated_at: string
+          username: string
+          wallet_address: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          credits?: number
+          display_name?: string | null
+          id: string
+          last_seen?: string | null
+          updated_at?: string
+          username: string
+          wallet_address?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          credits?: number
+          display_name?: string | null
+          id?: string
+          last_seen?: string | null
+          updated_at?: string
+          username?: string
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          profile_id: string
+          transaction_type: Database["public"]["Enums"]["transaction_type"]
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          profile_id: string
+          transaction_type: Database["public"]["Enums"]["transaction_type"]
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          profile_id?: string
+          transaction_type?: Database["public"]["Enums"]["transaction_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       "users-data": {
         Row: {
           content: string | null
@@ -35,7 +279,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      message_status: "sent" | "delivered" | "read"
+      transaction_type:
+        | "message_sent"
+        | "message_read"
+        | "reward_earned"
+        | "crypto_purchase"
+        | "crypto_sale"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +400,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      message_status: ["sent", "delivered", "read"],
+      transaction_type: [
+        "message_sent",
+        "message_read",
+        "reward_earned",
+        "crypto_purchase",
+        "crypto_sale",
+      ],
+    },
   },
 } as const

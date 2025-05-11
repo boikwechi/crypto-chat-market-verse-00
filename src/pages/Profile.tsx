@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
@@ -9,18 +9,77 @@ import { Switch } from "@/components/ui/switch";
 import { useTheme } from "@/components/ThemeProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { toast } from "@/components/ui/sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
 
 const Profile = () => {
-  const [name, setName] = useState("Alex Johnson");
-  const [bio, setBio] = useState("Crypto enthusiast and tech lover");
-  const [email, setEmail] = useState("alex@example.com");
+  const { profile, refreshProfile } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState({
+    username: "",
+    display_name: "",
+    bio: "",
+    wallet_address: ""
+  });
+  
   const [notifications, setNotifications] = useState(true);
   const { theme } = useTheme();
   
-  const handleSave = () => {
-    toast.success("Profile updated successfully!");
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        username: profile.username || "",
+        display_name: profile.display_name || "",
+        bio: profile.bio || "",
+        wallet_address: profile.wallet_address || ""
+      });
+      setIsLoading(false);
+    }
+  }, [profile]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!profile) return;
+    
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          display_name: formData.display_name,
+          bio: formData.bio,
+          wallet_address: formData.wallet_address,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', profile.id);
+
+      if (error) {
+        throw error;
+      }
+
+      await refreshProfile();
+      toast.success("Profile updated successfully!");
+    } catch (error: any) {
+      toast.error("Failed to update profile: " + error.message);
+    } finally {
+      setIsSaving(false);
+    }
   };
   
+  if (isLoading || !profile) {
+    return (
+      <div className="flex justify-center items-center h-[80vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-cryptoPurple" />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Profile Settings</h1>
@@ -28,31 +87,36 @@ const Profile = () => {
       <Card className="mb-6 p-6">
         <div className="flex items-center space-x-4 mb-6">
           <Avatar className="h-20 w-20 border-2 border-cryptoPurple">
-            <img src="https://i.pravatar.cc/100?img=52" alt="User avatar" />
+            <img 
+              src={profile.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${profile.username}`} 
+              alt="User avatar" 
+            />
           </Avatar>
           <div>
-            <h2 className="text-xl font-semibold">{name}</h2>
-            <p className="text-muted-foreground">{bio}</p>
+            <h2 className="text-xl font-semibold">{profile.display_name || profile.username}</h2>
+            <p className="text-muted-foreground">{profile.bio || "No bio yet"}</p>
           </div>
         </div>
         
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="username">Username</Label>
             <Input 
-              id="name" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
+              id="username" 
+              value={formData.username}
+              disabled
+              className="bg-muted"
             />
+            <p className="text-sm text-muted-foreground">Username cannot be changed</p>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="display_name">Display Name</Label>
             <Input 
-              id="email" 
-              type="email" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
+              id="display_name" 
+              value={formData.display_name} 
+              onChange={handleInputChange} 
+              placeholder="How you want to be known"
             />
           </div>
           
@@ -60,12 +124,33 @@ const Profile = () => {
             <Label htmlFor="bio">Bio</Label>
             <Input 
               id="bio" 
-              value={bio} 
-              onChange={(e) => setBio(e.target.value)} 
+              value={formData.bio} 
+              onChange={handleInputChange} 
+              placeholder="Tell us about yourself"
             />
           </div>
           
-          <Button onClick={handleSave}>Save Changes</Button>
+          <div className="space-y-2">
+            <Label htmlFor="wallet_address">Wallet Address</Label>
+            <Input 
+              id="wallet_address" 
+              value={formData.wallet_address} 
+              onChange={handleInputChange} 
+              placeholder="Your blockchain wallet address"
+            />
+          </div>
+          
+          <Button 
+            onClick={handleSave}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : "Save Changes"}
+          </Button>
         </div>
       </Card>
       
