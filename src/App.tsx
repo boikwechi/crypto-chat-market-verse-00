@@ -8,7 +8,7 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import { AuthProvider } from "./contexts/AuthContext";
 import Layout from "./components/Layout";
 import PrivateRoute from "./components/PrivateRoute";
-import Index from "./pages/Index";
+import Messaging from "./pages/Messaging";
 import Market from "./pages/Market";
 import Rewards from "./pages/Rewards";
 import Profile from "./pages/Profile";
@@ -33,7 +33,7 @@ const App = () => (
               <Route element={<PrivateRoute />}>
                 <Route path="/" element={
                   <Layout>
-                    <Index />
+                    <Messaging />
                   </Layout>
                 } />
                 <Route path="/market" element={
