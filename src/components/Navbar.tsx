@@ -1,12 +1,22 @@
 
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { MessageCircle, Bitcoin, Wallet, User } from "lucide-react";
+import { MessageCircle, Bitcoin, Wallet, User, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "./ThemeToggle";
+import { Button } from "./ui/button";
+import { toast } from "@/components/ui/sonner";
 
 const Navbar = () => {
   const location = useLocation();
   const [credits, setCredits] = useState(120);
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // For demo purposes
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    toast.success("Logged out successfully");
+    // In a real app, you would handle actual logout functionality
+  };
 
   const navItems = [
     { 
@@ -58,11 +68,27 @@ const Navbar = () => {
             ))}
           </div>
           
-          <div className="flex items-center">
+          <div className="flex items-center space-x-4">
             <div className="crypto-button flex items-center">
               <Wallet className="h-4 w-4 mr-2" />
               <span>{credits} Credits</span>
             </div>
+            
+            <ThemeToggle />
+            
+            {isLoggedIn ? (
+              <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </Button>
+            ) : (
+              <Link to="/login">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  <span>Login</span>
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
