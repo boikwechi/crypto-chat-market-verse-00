@@ -21,6 +21,8 @@ interface User {
   username: string;
   avatar_url: string;
   display_name: string | null;
+  email?: string;
+  phone?: string;
 }
 
 interface SearchUsersProps {
@@ -43,10 +45,11 @@ export default function SearchUsers({ onSelectUser }: SearchUsersProps) {
     setIsSearching(true);
 
     try {
+      // Enhanced query to search by username, display_name, email, or phone
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, username, avatar_url, display_name")
-        .or(`username.ilike.%${query}%, display_name.ilike.%${query}%`)
+        .select("id, username, avatar_url, display_name, email, phone")
+        .or(`username.ilike.%${query}%, display_name.ilike.%${query}%, email.ilike.%${query}%, phone.ilike.%${query}%`)
         .neq("id", user?.id || "")
         .limit(10);
 
@@ -82,12 +85,12 @@ export default function SearchUsers({ onSelectUser }: SearchUsersProps) {
         onClick={() => setOpen(true)}
       >
         <Search className="mr-2 h-4 w-4" />
-        <span>Search users...</span>
+        <span>Search users by name, email or phone...</span>
       </Button>
 
       <CommandDialog open={open} onOpenChange={handleOpenChange}>
         <CommandInput 
-          placeholder="Search for users..." 
+          placeholder="Search for users by name, email or phone..." 
           value={searchQuery}
           onValueChange={(value) => {
             setSearchQuery(value);
@@ -118,15 +121,21 @@ export default function SearchUsers({ onSelectUser }: SearchUsersProps) {
                         )}
                       </div>
                     </Avatar>
-                    <div>
+                    <div className="flex-1">
                       <p className="font-medium">
                         {user.display_name || user.username}
                       </p>
-                      {user.display_name && (
-                        <p className="text-xs text-muted-foreground">
-                          @{user.username}
-                        </p>
-                      )}
+                      <div className="flex flex-col text-xs text-muted-foreground">
+                        {user.display_name && (
+                          <span>@{user.username}</span>
+                        )}
+                        {user.email && (
+                          <span className="truncate">{user.email}</span>
+                        )}
+                        {user.phone && (
+                          <span>{user.phone}</span>
+                        )}
+                      </div>
                     </div>
                   </CommandItem>
                 ))}
